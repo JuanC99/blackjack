@@ -13,7 +13,7 @@ public class Deck : MonoBehaviour
     public Text finalMessage;
     public Text probMessage;
     public int[] values = new int[52];
-    private Dictionary<Sprite, int> deckInGame = new Dictionary<Sprite, int>();
+    public List<Sprite> deckInGame = new List<Sprite>();
     int cardIndex = 0;    
        
     private void Awake()
@@ -57,12 +57,47 @@ public class Deck : MonoBehaviour
 
     private void ShuffleCards()
     {
-        //rellenar el diccionario
-        /*for (int i = 0; i < 52; i = i++)
+        
+
+      
+       for(int i=0; i < faces.Length; i++)
         {
-            deckInGame.Add(faces[i], values[i]);
-        }*/
+            deckInGame.Add(faces[i]);
+        }
+       
+        Sprite spriteTmp;
+        int n = deckInGame.Count;
+
+        //Ordena aleatoriamente los valores de la lista
+        //Recorre todas las posiciones de la lista y intercambia cada casilla por otra aleatoria
+        while (n >1)
+        {
+            n--;
+            int k = Random.Range(0,n + 1);
+            spriteTmp = deckInGame[k];
+            deckInGame[k] = deckInGame[n];
+            deckInGame[n] = spriteTmp;
+        }
     }
+
+    private int GetNumberFromSprite(Sprite sprite)
+    {
+        bool semaforo = true;
+        int number=-1;
+        for(int i=0; i<faces.Length && semaforo; i++)
+        {
+            if (faces[i] == sprite)
+            {
+                number = values[i];
+
+                semaforo = false;
+            }
+
+        }
+        return number;
+    }
+
+
 
     void StartGame()
     {
