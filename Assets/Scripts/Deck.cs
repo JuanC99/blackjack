@@ -35,11 +35,7 @@ public class Deck : MonoBehaviour
         {
             rellenarPalo(i);
         }
-        //rellenar el diccionario
-        for (int i = 0; i < 52; i = i + 13)
-        {
-            deckInGame.Add(faces[i], values[i]);
-        }
+
     }
     private void rellenarPalo(int posInicio)
     {
@@ -61,7 +57,11 @@ public class Deck : MonoBehaviour
 
     private void ShuffleCards()
     {
-        //deckInGame.       
+        //rellenar el diccionario
+        /*for (int i = 0; i < 52; i = i++)
+        {
+            deckInGame.Add(faces[i], values[i]);
+        }*/
     }
 
     void StartGame()
