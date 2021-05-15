@@ -14,7 +14,9 @@ public class Deck : MonoBehaviour
     public Text probMessage;
     public int[] values = new int[52];
     public List<Sprite> deckInGame = new List<Sprite>();
-    int cardIndex = 0;    
+    int cardIndex = 0;
+    
+    
        
     private void Awake()
     {    
@@ -105,9 +107,23 @@ public class Deck : MonoBehaviour
         {
             PushPlayer();
             PushDealer();
-            /*TODO:
-             * Si alguno de los dos obtiene Blackjack, termina el juego y mostramos mensaje
-             */
+        }
+
+        ComprobarBlackJack();
+    }
+
+    void ComprobarBlackJack()
+    {
+        if (player.GetComponent<CardHand>().points == 21)
+        {
+            finalMessage.text = "Blackjack!! The player WIN!";
+            InteractButtons(false);
+        }
+        else if (dealer.GetComponent<CardHand>().points == 21)
+        {
+            finalMessage.text = "Blackjack!! The dealer WIN!";
+            InteractButtons(false);
+
         }
     }
 
@@ -126,8 +142,10 @@ public class Deck : MonoBehaviour
         /*TODO:
          * Dependiendo de cómo se implemente ShuffleCards, es posible que haya que cambiar el índice.
          */
-        dealer.GetComponent<CardHand>().Push(faces[cardIndex],values[cardIndex]);
-        cardIndex++;        
+        dealer.GetComponent<CardHand>().Push(deckInGame[cardIndex],GetNumberFromSprite(deckInGame[cardIndex]));
+        cardIndex++;
+        Debug.Log("puntos deler: "+ dealer.GetComponent<CardHand>().points);
+        
     }
 
     void PushPlayer()
@@ -135,10 +153,13 @@ public class Deck : MonoBehaviour
         /*TODO:
          * Dependiendo de cómo se implemente ShuffleCards, es posible que haya que cambiar el índice.
          */
-        player.GetComponent<CardHand>().Push(faces[cardIndex], values[cardIndex]/*,cardCopy*/);
+        player.GetComponent<CardHand>().Push(deckInGame[cardIndex], GetNumberFromSprite(deckInGame[cardIndex]));
         cardIndex++;
         CalculateProbabilities();
-    }       
+
+        Debug.Log("puntos player: " + player.GetComponent<CardHand>().points);
+
+    }
 
     public void Hit()
     {
@@ -151,7 +172,18 @@ public class Deck : MonoBehaviour
 
         /*TODO:
          * Comprobamos si el jugador ya ha perdido y mostramos mensaje
-         */      
+         */
+
+        if (player.GetComponent<CardHand>().points == 21)
+        {
+            finalMessage.text = "The player WIN!";
+            InteractButtons(false);
+        }
+        else if (player.GetComponent<CardHand>().points > 21)
+        {
+            finalMessage.text = "The dealer WIN!";
+            InteractButtons(false);
+        }
 
     }
 
@@ -161,24 +193,60 @@ public class Deck : MonoBehaviour
          * Si estamos en la mano inicial, debemos voltear la primera carta del dealer.
          */
 
+
+
         /*TODO:
          * Repartimos cartas al dealer si tiene 16 puntos o menos
          * El dealer se planta al obtener 17 puntos o más
          * Mostramos el mensaje del que ha ganado
-         */                
-         
+         */
+
+        if (dealer.GetComponent<CardHand>().points <= 16)
+        {
+            PushDealer();
+        }
+        ComprobarVictoriaFinal();
+
+    }
+
+    private void ComprobarVictoriaFinal()
+    {
+        if(dealer.GetComponent<CardHand>().points == player.GetComponent<CardHand>().points)
+        {
+            finalMessage.text = "Tie!";
+        }else if (dealer.GetComponent<CardHand>().points > 21)
+        {
+            finalMessage.text = "The player WIN!";
+        }
+        else if(dealer.GetComponent<CardHand>().points > player.GetComponent<CardHand>().points)
+        {
+            finalMessage.text = "The deler WIN!";
+        }
+        else
+        {
+            finalMessage.text = "The player WIN!";
+        }
+        InteractButtons(false);
+
     }
      
     public void PlayAgain()
     {
-        hitButton.interactable = true;
-        stickButton.interactable = true;
+        InteractButtons(true);
         finalMessage.text = "";
         player.GetComponent<CardHand>().Clear();
         dealer.GetComponent<CardHand>().Clear();          
         cardIndex = 0;
         ShuffleCards();
         StartGame();
+    }
+
+
+    //Deshabilitar o habilitar botones 
+    private void InteractButtons(bool state)
+    {
+        hitButton.interactable = state;
+        stickButton.interactable = state;
     }
     
 }
