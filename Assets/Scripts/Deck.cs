@@ -10,24 +10,119 @@ public class Deck : MonoBehaviour
     public Button hitButton;
     public Button stickButton;
     public Button playAgainButton;
+
+    public Button buttonAdd;
+    public Button buttonLess;
+    public Button buttondApostar;
+    public Button buttonAllin;
+
     public Text finalMessage;
     public Text probMessage;
+    public Text textSaldoActual;
+    public Text textSaldoEnJuego;
     public int[] values = new int[52];
     public List<Sprite> deckInGame = new List<Sprite>();
     int cardIndex = 0;
-    
+    private int saldo;
+    private int saldoEnJuego;
+
+    enum ResultGame : int
+    {
+        Tie = 0,
+        PlayerWin = 1,
+        PlayerLose = 2,
+        BlackjackPlayerWin = 3,
+        BlackjackPlayerLose = 4
+    }
+
+    private bool jugadorGana;
     
        
     private void Awake()
     {    
-        InitCardValues();        
-
+        InitCardValues();
+        saldo = 1000;
+        saldoEnJuego = 0;
+        updateTextSaldo();
+    }
+    private void updateTextSaldo()
+    {
+        textSaldoActual.text = saldo.ToString();
+        textSaldoEnJuego.text = saldoEnJuego.ToString();
     }
 
     private void Start()
     {
         ShuffleCards();
-        StartGame();        
+        FaseApuesta(true);     
+    }
+
+    public void buttonApostar()
+    {
+        FaseApuesta(false);
+        StartGame();
+    }
+
+    public void FaseApuesta(bool state)
+    {
+        finalMessage.text = "Haga su apuesta!";
+
+        buttonAdd.interactable = state;
+        buttonLess.interactable = state;
+        buttondApostar.interactable = state;
+        buttonAllin.interactable = state;
+
+        hitButton.interactable = !state;
+        stickButton.interactable = !state;
+        playAgainButton.interactable = !state;
+
+        if(state == true)
+        {
+            finalMessage.text = "Haga su apuesta!";
+            player.GetComponent<CardHand>().Clear();
+            dealer.GetComponent<CardHand>().Clear();
+            cardIndex = 0;
+        }
+        else
+        {
+            finalMessage.text = "";
+        }
+      
+    }
+
+
+    public void ActionButtonAdd()
+    {
+        if (saldo>0)
+        {
+            saldo = saldo - 10;
+            saldoEnJuego = saldoEnJuego + 10;
+            updateTextSaldo();
+        }
+        
+    }
+
+    public void buttonAllIn()
+    {
+        if (saldo > 0)
+        {
+           
+            saldoEnJuego = saldo;
+            saldo = 0;
+            updateTextSaldo();
+        }
+
+    }
+
+    public void ActionButtonLess()
+    {
+        if (saldoEnJuego > 0)
+        {
+            saldo = saldo + 10;
+            saldoEnJuego = saldoEnJuego - 10;
+            updateTextSaldo();
+        }
+        
     }
 
     private void InitCardValues()
@@ -59,8 +154,6 @@ public class Deck : MonoBehaviour
 
     private void ShuffleCards()
     {
-
-
        deckInGame.Clear();
        for(int i=0; i < faces.Length; i++)
         {
@@ -69,7 +162,6 @@ public class Deck : MonoBehaviour
        
         Sprite spriteTmp;
         int n = deckInGame.Count;
-
         //Ordena aleatoriamente los valores de la lista
         //Recorre todas las posiciones de la lista y intercambia cada casilla por otra aleatoria
         while (n >1)
@@ -91,10 +183,8 @@ public class Deck : MonoBehaviour
             if (faces[i] == sprite)
             {
                 number = values[i];
-
                 semaforo = false;
             }
-
         }
         return number;
     }
@@ -116,14 +206,11 @@ public class Deck : MonoBehaviour
     {
         if (player.GetComponent<CardHand>().points == 21)
         {
-            finalMessage.text = "Blackjack!! The player WIN!";
-            InteractButtons(false);
+            EndGame(ResultGame.BlackjackPlayerWin);
         }
         else if (dealer.GetComponent<CardHand>().points == 21)
         {
-            finalMessage.text = "Blackjack!! The dealer WIN!";
-           
-            InteractButtons(false);
+            EndGame(ResultGame.BlackjackPlayerLose);
 
         }
     }
@@ -168,13 +255,11 @@ public class Deck : MonoBehaviour
 
         if (player.GetComponent<CardHand>().points == 21)
         {
-            finalMessage.text = "The player WIN!";
-            InteractButtons(false);
+            EndGame(ResultGame.PlayerWin);
         }
         else if (player.GetComponent<CardHand>().points > 21)
         {
-            finalMessage.text = "The dealer WIN!";
-            InteractButtons(false);
+            EndGame(ResultGame.PlayerLose);
         }
 
     }
@@ -205,34 +290,68 @@ public class Deck : MonoBehaviour
     {
         if(dealer.GetComponent<CardHand>().points == player.GetComponent<CardHand>().points)
         {
-            finalMessage.text = "Tie!";
-        }else if (dealer.GetComponent<CardHand>().points > 21)
+            EndGame(ResultGame.Tie);
+        }
+        else if (dealer.GetComponent<CardHand>().points > 21)
         {
-            finalMessage.text = "The player WIN!";
+            EndGame(ResultGame.PlayerWin);
         }
         else if(dealer.GetComponent<CardHand>().points > player.GetComponent<CardHand>().points)
         {
-            finalMessage.text = "The deler WIN!";
+            EndGame(ResultGame.PlayerLose);
         }
         else
         {
+            EndGame(ResultGame.PlayerWin);
+        }
+    }
+
+
+    private void EndGame(ResultGame result)
+    {
+        bool lose = true;
+        if (result == ResultGame.Tie)
+        {
+            finalMessage.text = "Tie!";
+        }
+        else if(result == ResultGame.PlayerWin)
+        {
             finalMessage.text = "The player WIN!";
+            lose = false;
+        }
+        else if(result == ResultGame.PlayerLose)
+        {
+            finalMessage.text = "The dealer WIN!";
+        }
+        else if(result == ResultGame.BlackjackPlayerLose)
+        {
+            finalMessage.text = "Blackjack! The dealer WIN!";
+        }
+        else if(result == ResultGame.BlackjackPlayerWin)
+        {
+            finalMessage.text = "Blackjack! The player WIN!";
+            lose = false;
+
         }
 
+        if (lose == false)
+        {
+            saldo = saldo + (saldoEnJuego * 2);
+        }
+        saldoEnJuego = 0;
+        updateTextSaldo();
         dealer.GetComponent<CardHand>().cards[0].GetComponent<CardModel>().ToggleFace(true);
         InteractButtons(false);
-
     }
+
+
      
     public void PlayAgain()
     {
-        InteractButtons(true);
-        finalMessage.text = "";
-        player.GetComponent<CardHand>().Clear();
-        dealer.GetComponent<CardHand>().Clear();          
-        cardIndex = 0;
-        ShuffleCards();
-        StartGame();
+
+        FaseApuesta(true);
+        //ShuffleCards();
+        //StartGame();
     }
 
 
