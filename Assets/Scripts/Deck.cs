@@ -59,13 +59,16 @@ public class Deck : MonoBehaviour
 
     public void buttonApostar()
     {
-        FaseApuesta(false);
-        StartGame();
+        if (saldoEnJuego>0)
+        {
+            FaseApuesta(false);
+            StartGame();
+        }
+        
     }
 
     public void FaseApuesta(bool state)
     {
-        finalMessage.text = "Haga su apuesta!";
 
         buttonAdd.interactable = state;
         buttonLess.interactable = state;
@@ -78,6 +81,7 @@ public class Deck : MonoBehaviour
 
         if(state == true)
         {
+            finalMessage.color = Color.white;
             finalMessage.text = "Haga su apuesta!";
             player.GetComponent<CardHand>().Clear();
             dealer.GetComponent<CardHand>().Clear();
@@ -87,11 +91,13 @@ public class Deck : MonoBehaviour
         {
             finalMessage.text = "";
         }
-      
+
+
+
     }
 
 
-    public void ActionButtonAdd()
+    public void ActionButtonAddx10()
     {
         if (saldo>0)
         {
@@ -102,19 +108,30 @@ public class Deck : MonoBehaviour
         
     }
 
+    public void ActionButtonAddx50()
+    {
+        if (saldo > 0)
+        {
+            saldo = saldo - 50;
+            saldoEnJuego = saldoEnJuego + 50;
+            updateTextSaldo();
+        }
+
+    }
+
     public void buttonAllIn()
     {
         if (saldo > 0)
         {
            
-            saldoEnJuego = saldo;
+            saldoEnJuego = saldoEnJuego + saldo;
             saldo = 0;
             updateTextSaldo();
         }
 
     }
 
-    public void ActionButtonLess()
+    public void ActionButtonLessx10()
     {
         if (saldoEnJuego > 0)
         {
@@ -123,6 +140,17 @@ public class Deck : MonoBehaviour
             updateTextSaldo();
         }
         
+    }
+
+    public void ActionButtonLessx50()
+    {
+        if (saldoEnJuego > 0)
+        {
+            saldo = saldo + 50;
+            saldoEnJuego = saldoEnJuego - 50;
+            updateTextSaldo();
+        }
+
     }
 
     private void InitCardValues()
@@ -312,24 +340,25 @@ public class Deck : MonoBehaviour
         bool lose = true;
         if (result == ResultGame.Tie)
         {
-            finalMessage.text = "Tie!";
+            finalMessage.text = "Empate!";
+            finalMessage.color = Color.red;
         }
         else if(result == ResultGame.PlayerWin)
         {
-            finalMessage.text = "The player WIN!";
+            finalMessage.text = "El jugador gana!";
             lose = false;
         }
         else if(result == ResultGame.PlayerLose)
         {
-            finalMessage.text = "The dealer WIN!";
+            finalMessage.text = "El dealer gana!";
         }
         else if(result == ResultGame.BlackjackPlayerLose)
         {
-            finalMessage.text = "Blackjack! The dealer WIN!";
+            finalMessage.text = "Blackjack! El dealer gana!";
         }
         else if(result == ResultGame.BlackjackPlayerWin)
         {
-            finalMessage.text = "Blackjack! The player WIN!";
+            finalMessage.text = "Blackjack! El jugador gana!";
             lose = false;
 
         }
@@ -337,11 +366,24 @@ public class Deck : MonoBehaviour
         if (lose == false)
         {
             saldo = saldo + (saldoEnJuego * 2);
+            finalMessage.color = Color.green;
+        }
+        else
+        {
+            finalMessage.color = Color.red;
         }
         saldoEnJuego = 0;
         updateTextSaldo();
         dealer.GetComponent<CardHand>().cards[0].GetComponent<CardModel>().ToggleFace(true);
         InteractButtons(false);
+
+
+        if (saldo == 0)
+        {
+            finalMessage.text = "Te has quedado sin dinero para apostar... Vuelva pronto!";
+            playAgainButton.interactable = false;
+        }
+
     }
 
 
@@ -350,7 +392,7 @@ public class Deck : MonoBehaviour
     {
 
         FaseApuesta(true);
-        //ShuffleCards();
+        ShuffleCards();
         //StartGame();
     }
 
@@ -439,7 +481,6 @@ public class Deck : MonoBehaviour
                 contadorCarta++;
             }
         }
-        Debug.Log("card deck" + contadorCarta);
         float res = (float)contadorCarta / (float)numeroCartasEnElMazo;
         return res;
     }
